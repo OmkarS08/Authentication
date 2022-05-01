@@ -1,9 +1,11 @@
 //jshint esversion:6
 /*--------------------npm packages------------------*/
+require('dotenv').config() // to use values from the .env environment and also to keep it safe.
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
+const encrypt = require('mongoose-encryption');
 
 /*--------------------Usage declairation------------------*/
 const app = express();
@@ -19,9 +21,15 @@ const UserSchema = new mongoose.Schema({
     email: String,
     password: String
 });
-//model
-const User = mongoose.model("User", UserSchema);
 
+/*-----------------------Level 2 authetincation using Aes cipher--------------*/
+UserSchema.plugin(encrypt, {
+    secret: process.env.SECRET,
+    encryptedFields: ["password"]
+});
+
+// Note:-mongoose.model should come afte the encryption/authentication
+const User = mongoose.model("User", UserSchema);
 /*-----------------------------Get request----------------- */
 app.get("/", function(req, res) {
     res.render("home");
