@@ -5,7 +5,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
-const encrypt = require('mongoose-encryption');
+const encrypt = require('mongoose-encryption'); //mongoose encryption
+const md5 = require("md5"); //hashing function 
 
 /*--------------------Usage declairation------------------*/
 const app = express();
@@ -23,10 +24,6 @@ const UserSchema = new mongoose.Schema({
 });
 
 /*-----------------------Level 2 authetincation using Aes cipher--------------*/
-UserSchema.plugin(encrypt, {
-    secret: process.env.SECRET,
-    encryptedFields: ["password"]
-});
 
 // Note:-mongoose.model should come afte the encryption/authentication
 const User = mongoose.model("User", UserSchema);
@@ -45,7 +42,7 @@ app.get("/register", function(req, res) {
 app.post("/register", function(req, res) {
     const newUser = new User({
         email: req.body.username,
-        password: req.body.password
+        password: md5(req.body.password)
     });
     newUser.save(function(err) {
         if (!err) {
@@ -59,7 +56,7 @@ app.post("/register", function(req, res) {
 
 app.post("/login", function(req, res) {
     const newusername = req.body.username;
-    const newpassword = req.body.password;
+    const newpassword = md5(req.body.password); //md5 is used to for hashing
     User.findOne({ email: newusername }, function(err, founditem) {
         if (!err) {
             if (founditem) {
